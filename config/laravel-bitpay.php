@@ -1,13 +1,19 @@
 <?php
 
-$pkPath = 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'bitpay'  . DIRECTORY_SEPARATOR . 'laravel-bitpay.pk';
+$pkDir = 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'bitpay';
 
 return [
     /*
-     * This is the full path and name for the private key.
-     * The default value is `storage/app/private/bitpay/laravel-bitpay.pk`
+     * This is the directory/folder path in which to store the private key.
+     * The default value is `storage/app/private/bitpay`
      */
-    'private_key'             => env('BITPAY_PRIVATE_KEY_PATH') ?: storage_path($pkPath),
+    'private_key_dir'             => env('BITPAY_PRIVATE_KEY_DIR') ?: storage_path($pkDir),
+
+    /*
+     * This is name for the private key file.
+     * The default value is `laravel_bitpay.pk`
+     */
+    'private_key_name'             => env('BITPAY_PRIVATE_KEY_NAME') ?: 'laravel_bitpay.pk',
 
     /*
      * Specifies using either the Live (mainnet) or Test (testnet) BitPay network.

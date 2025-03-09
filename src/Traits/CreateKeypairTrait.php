@@ -3,6 +3,7 @@
 namespace Vrajroham\LaravelBitpay\Traits;
 
 use BitPaySDK\Model\Facade;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Vrajroham\LaravelBitpay\Exceptions\InvalidConfigurationException;
 
@@ -25,7 +26,15 @@ trait CreateKeypairTrait
             throw InvalidConfigurationException::invalidOrEmptyPassword();
         }
 
+        if (!Storage::exists($config['private_key_dir'])) {
+            Storage::makeDirectory($config['private_key_dir']);
+        }
+
         $this->config = $config;
+    }
+
+    protected function privateKeyAbsPath(): string {
+        return storage_path($this->config['private_key_dir'] . DIRECTORY_SEPARATOR . $this->config['private_key_name']);
     }
 
     protected function getEnabledFacades(): array

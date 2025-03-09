@@ -134,7 +134,7 @@ class CreateKeypairCommand extends Command
         } else {
             try {
                 // Try to load the configured Private Key, expect it to be missing or corrupted
-                $this->privateKey = $this->storageEngine->load($this->config['private_key']);
+                $this->privateKey = $this->storageEngine->load($this->privateKeyAbsPath());
 
                 // Private Key may be uncorrupted but has invalid hexits or decimals
                 if ($this->privateKey->isValid()) {
@@ -173,7 +173,7 @@ class CreateKeypairCommand extends Command
     {
         $this->advanceWithInfo(' 🔑 - Generating private key.');
 
-        $this->privateKey = new PrivateKey($this->config['private_key']);
+        $this->privateKey = new PrivateKey($this->privateKeyAbsPath());
         $this->privateKey->generate();
 
         $this->advanceWithInfo(' 🌐 - Generating public key.');
