@@ -2,17 +2,19 @@
 
 namespace Vrajroham\LaravelBitpay;
 
+use BitPaySDK\Client;
 use BitPaySDK\Exceptions\BitPayException;
 use Vrajroham\LaravelBitpay\Actions\ManageBills;
 use Vrajroham\LaravelBitpay\Actions\ManageCurrencies;
-use Vrajroham\LaravelBitpay\Actions\ManageExchangeRates;
 use Vrajroham\LaravelBitpay\Actions\ManageInvoices;
 use Vrajroham\LaravelBitpay\Actions\ManageLedgers;
 use Vrajroham\LaravelBitpay\Actions\ManagePayouts;
+use Vrajroham\LaravelBitpay\Actions\ManageRates;
 use Vrajroham\LaravelBitpay\Actions\ManageRecipients;
 use Vrajroham\LaravelBitpay\Actions\ManageRefunds;
 use Vrajroham\LaravelBitpay\Actions\ManageSettlements;
 use Vrajroham\LaravelBitpay\Actions\ManageSubscriptions;
+use Vrajroham\LaravelBitpay\Actions\ManageWallets;
 use Vrajroham\LaravelBitpay\Traits\MakesHttpRequests;
 
 
@@ -21,7 +23,7 @@ class LaravelBitpay
     use MakesHttpRequests;
     use ManageBills;
     use ManageCurrencies;
-    use ManageExchangeRates;
+    use ManageRates;
     use ManageInvoices;
     use ManageLedgers;
     use ManagePayouts;
@@ -29,10 +31,11 @@ class LaravelBitpay
     use ManageRefunds;
     use ManageSettlements;
     use ManageSubscriptions;
+    use ManageWallets;
 
 
-    protected $client;
-    private   $config;
+    protected Client $client;
+    private          $config;
 
 
     /**

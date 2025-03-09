@@ -8,7 +8,7 @@ class InvalidConfigurationException extends Exception
 {
     public static function invalidNetworkName(): self
     {
-        return new static('Invalid network option provided in config. Should be livenet or testnet only.');
+        return new static('Invalid network option provided in config. Should be mainnet or testnet only.');
     }
 
     public static function invalidStorageClass()
@@ -29,5 +29,10 @@ class InvalidConfigurationException extends Exception
     public static function emptyPayoutToken()
     {
         return new static('BitPay payout token is empty. Set BITPAY_PAYOUT_TOKEN in your .env file.');
+    }
+
+    public static function emptyPosToken()
+    {
+        return new static('BitPay POS token is empty. Set BITPAY_POS_TOKEN in your .env file.');
     }
 }

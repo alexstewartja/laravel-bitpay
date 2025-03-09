@@ -40,4 +40,4 @@ All notable changes to `vrajroham/laravel-bitpay` will be documented in this fil
 
 #### v2.0.2
 
-- Fixed **livenet** token `URL` [#14](https://github.com/vrajroham/laravel-bitpay/pull/14) by [@IvanG11](https://github.com/IvanG11)
+- Fixed **mainnet** token `URL` [#14](https://github.com/vrajroham/laravel-bitpay/pull/14) by [@IvanG11](https://github.com/IvanG11)

@@ -14,7 +14,7 @@ cryptocurrencies within your Laravel application.
 
 ## :warning: Migration From v4 :warning:
 
-If upgrading from v4, please follow [MIGRATION.md](./MIGRATION.md)
+If upgrading from v4, please follow [MIGRATION.md](MIGRATION.md)
 
 ## Supported Resources
 

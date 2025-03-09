@@ -2,16 +2,18 @@
 
 namespace Vrajroham\LaravelBitpay\Traits;
 
+use BitPaySDK\Model\Facade;
+use Illuminate\Support\Str;
 use Vrajroham\LaravelBitpay\Exceptions\InvalidConfigurationException;
 
 
 trait CreateKeypairTrait
 {
-    public function validateAndLoadConfig()
+    public function initialize()
     {
         $config = config('laravel-bitpay');
 
-        if ('livenet' !== $config['network'] && 'testnet' !== $config['network']) {
+        if (! in_array(Str::lower($config['network']), ['mainnet', 'testnet'])) {
             throw InvalidConfigurationException::invalidNetworkName();
         }
 
@@ -28,49 +30,35 @@ trait CreateKeypairTrait
 
     protected function getEnabledFacades(): array
     {
-        $facades = [];
+        $enabledFacades = [];
 
-        if (! empty($this->config['merchant_facade_enabled']) && $this->config['merchant_facade_enabled']) {
-            $facades[] = 'merchant';
+        foreach ($this->getAllFacades() as $facade) {
+            if (! empty($this->config["{$facade}_facade_enabled"]) && $this->config["{$facade}_facade_enabled"]) {
+                $enabledFacades[] = $facade;
+            }
         }
 
-        if (! empty($this->config['payout_facade_enabled']) && $this->config['payout_facade_enabled']) {
-            $facades[] = 'payout';
-        }
-
-        return $facades;
+        return $enabledFacades;
     }
 
-    /**
-     *
-     * @param string $facade One of 'merchant' or 'payout'
-     *
-     * @throws \Exception
-     */
-    private function getEnvReplacementString(string $facade): string
+    protected function getAllFacades(): array
     {
-        if ($facade === 'merchant') {
-            return "BITPAY_MERCHANT_TOKEN";
-        } elseif ($facade === 'payout') {
-            return "BITPAY_PAYOUT_TOKEN";
-        }
-
-        throw new \Exception("'$facade' is not a valid BitPay facade!", 1);
+        return array_values((new \ReflectionClass(Facade::class))->getConstants());
     }
 
     /**
      * Write facade-specific token to .env
-     * Update it if it exists, otherwise add it below existing BITPAY_* entries.
-     * Finally, and very unlikely, if it doesn't exist nor does any other BITPAY_* entries, write it to the end
+     * Update token if it exists, otherwise add it below existing BITPAY_* entries.
+     * Finally, if token doesn't exist nor does any other BITPAY_* entries, write it to the end
      * of the .env
      *
-     * @param string $facade One of 'merchant' or 'payout'
+     * @param string $facade One of the constants defined on `BitPaySDK\Model\Facade`
      *
      * @throws \Exception
      */
     protected function writeNewEnvironmentFileWith(string $facade)
     {
-        $replString      = $this->getEnvReplacementString($facade) . '=' . $this->token;
+        $replString      = $this->getEnvReplacementString($facade) . '=' . $this->tokens[$facade];
         $envFilePath     = $this->laravel->environmentFilePath();
         $envFileContents = file_get_contents($envFilePath);
 
@@ -90,7 +78,7 @@ trait CreateKeypairTrait
                 }
             }
 
-            // Highly unlikely, but place token at end of .env if no other BITPAY_* entries exist
+            // Place token at end of .env if no other BITPAY_* entries exist
             if ($offset === null) {
                 $offset     = count($envLines) - 1;
                 $replString = "\n" . $replString;
@@ -103,16 +91,31 @@ trait CreateKeypairTrait
 
     /**
      *
-     * @param string $facade One of 'merchant' or 'payout'
+     * @param string $facade One of the constants defined on `BitPaySDK\Model\Facade`
+     *
+     * @throws \Exception
+     */
+    private function getEnvReplacementString(string $facade): string
+    {
+        if (in_array($facade, $this->getAllFacades(), true)) {
+            $facade_upper = Str::upper($facade);
+
+            return "BITPAY_{$facade_upper}_TOKEN";
+        }
+
+        throw new \Exception("'$facade' is not a valid BitPay facade!", 1);
+    }
+
+    /**
+     *
+     * @param string $facade One of the constants defined on `BitPaySDK\Model\Facade`
      *
      * @throws \Exception
      */
     protected function keyReplacementPattern(string $facade): string
     {
-        if ($facade === 'merchant') {
-            $token = $this->laravel['config']['laravel-bitpay.merchant_token'];
-        } elseif ($facade === 'payout') {
-            $token = $this->laravel['config']['laravel-bitpay.payout_token'];
+        if (in_array($facade, $this->getAllFacades(), true)) {
+            $token = $this->config["{$facade}_token"];
         } else {
             throw new \Exception("'$facade' is not a valid BitPay facade!", 1);
         }

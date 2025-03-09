@@ -3,32 +3,22 @@
 namespace Vrajroham\LaravelBitpay\Actions;
 
 use BitPaySDK\Exceptions\BitPayException;
-use BitPaySDK\Exceptions\PayoutQueryException;
-use BitPaySDK\Exceptions\PayoutRecipientCancellationException;
-use BitPaySDK\Exceptions\PayoutRecipientCreationException;
-use BitPaySDK\Exceptions\PayoutRecipientNotificationException;
-use BitPaySDK\Exceptions\PayoutRecipientUpdateException;
 use BitPaySDK\Model\Payout\PayoutRecipient;
 use BitPaySDK\Model\Payout\PayoutRecipients;
 use Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate;
 
 
 /**
- * To create payout requests, merchants will first need to issue email invites using this resource.
- * This is a mandatory step to onboard customers asking for cryptocurrency payouts.
- * The recipients of the email invites will be invited to create a BitPay personal account,
- * submit a photo of a proof of ID document (Passport, driver's license, Identity card) and provide
- * the home address in order to be able to submit a cryptocurrency withdrawal address to be used for the payouts.
+ * The Recipient resource allows a merchant to invite his clients to signup for a BitPay personal account.
+ * To create payouts, merchants will first need to issue email invites using this resource.
  *
- * @link https://bitpay.com/api/#rest-api-resources-recipients
+ * @link https://developer.bitpay.com/reference/recipients
  */
 trait ManageRecipients
 {
 
     /**
-     * The Recipient resource allows a merchant to invite his clients to signup for a BitPay personal account.
-     *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-resource
+     * Construct a BitPay Recipient instance.
      *
      * @param string|null $email           Recipient email address
      * @param string|null $label           For merchant use, pass through - could be customer name or unique reference.
@@ -38,15 +28,15 @@ trait ManageRecipients
      * @return PayoutRecipient
      */
     public static function PayoutRecipient(
-        string $email = null,
-        string $label = null,
-        string $notificationURL = null
+        ?string $email = null,
+        ?string $label = null,
+        ?string $notificationURL = null
     ): PayoutRecipient {
         return new PayoutRecipient($email, $label, $notificationURL);
     }
 
     /**
-     * A PayoutRecipients object, used primarily when merchants invite their payees.
+     * Construct a BitPay Recipients instance.
      *
      * @param PayoutRecipient[] $recipients An array of PayoutRecipient objects
      *
@@ -60,18 +50,14 @@ trait ManageRecipients
     /**
      * Invite Recipient(s).
      *
-     * For merchants who need to invite multiple recipients in a short period of time, make sure to send batch of
-     * invites e.g. use this endpoint to invite an array [] of recipients (up to 1000 in a single API call)
+     * By default, a merchant can invite a maximum of 1000 distinct recipients via the business account.
      *
-     * By default, a merchant can invite a maximum of 1000 distinct recipients via the business account,
-     * reach out to your account manager at BitPay in order to increase this limit.
-     *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-invite-a-recipient
+     * @link https://developer.bitpay.com/reference/invite-recipients Invite Recipients
      *
      * @param $recipients PayoutRecipients A PayoutRecipients object with one or more PayoutRecipient included.
      *
      * @return PayoutRecipient[] A list of BitPay PayoutRecipient objects.
-     * @throws PayoutRecipientCreationException BitPayException class
+     * @throws BitPayException
      */
     public static function invitePayoutRecipients(PayoutRecipients $recipients): array
     {
@@ -80,7 +66,7 @@ trait ManageRecipients
         try {
             foreach ($recipients->getRecipients() as $recipient) {
                 if (empty($recipient['notificationURL']) &&
-                    in_array(WebhookAutoPopulate::For_Recipients, $thisInstance->config['auto_populate_webhook'])) {
+                    in_array(WebhookAutoPopulate::RECIPIENTS, $thisInstance->config['auto_populate_webhook'])) {
                     $recipient['notificationURL'] = route('laravel-bitpay.webhook.capture');
                 }
             }
@@ -94,12 +80,12 @@ trait ManageRecipients
     /**
      * Retrieve a BitPay payout recipient by its ID.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-retrieve-a-recipient
+     * @link https://developer.bitpay.com/reference/retrieve-a-recipient Retrieve a Recipient
      *
-     * @param $recipientId string The id of the recipient to retrieve.
+     * @param $recipientId string The ID of the recipient to retrieve.
      *
      * @return PayoutRecipient A BitPay PayoutRecipient object.
-     * @throws PayoutQueryException BitPayException class
+     * @throws BitPayException
      */
     public static function getPayoutRecipient(string $recipientId): PayoutRecipient
     {
@@ -109,14 +95,14 @@ trait ManageRecipients
     /**
      * Retrieve recipients by status.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-retrieve-recipients-by-status
+     * @link https://developer.bitpay.com/reference/retrieve-recipients-by-status Retrieve Recipients by Status
      *
      * @param $status     string|null The recipient status you want to query on.
      * @param $limit      int|null Maximum results that the query will return (useful for paging results).
      * @param $offset     int|null Number of results to offset (ex. skip 10 will give you results starting with the 11th result).
      *
      * @return PayoutRecipient[] A list of BitPay PayoutRecipient objects.
-     * @throws BitPayException BitPayException class
+     * @throws BitPayException
      */
     public static function getPayoutRecipients(string $status = null, int $limit = null, int $offset = null): array
     {
@@ -126,13 +112,13 @@ trait ManageRecipients
     /**
      * Update a Recipient.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-update-a-recipient
+     * @link https://developer.bitpay.com/reference/update-a-recipient Update a Recipient
      *
      * @param $recipientId string The ID for the recipient to be updated.
      * @param $recipient   PayoutRecipient A PayoutRecipient object with updated parameters defined.
      *
      * @return PayoutRecipient The updated PayoutRecipient object.
-     * @throws PayoutRecipientUpdateException PayoutRecipientUpdateException class
+     * @throws BitPayException
      */
     public static function updatePayoutRecipient(string $recipientId, PayoutRecipient $recipient): PayoutRecipient
     {
@@ -142,12 +128,12 @@ trait ManageRecipients
     /**
      * Remove a recipient
      *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-remove-a-recipient
+     * @link https://developer.bitpay.com/reference/remove-a-recipient Remove a Recipient
      *
      * @param $recipientId string The ID of the recipient to be removed.
      *
      * @return bool True if the recipient was successfully removed, false otherwise.
-     * @throws PayoutRecipientCancellationException PayoutRecipientCancellationException class
+     * @throws BitPayException
      */
     public static function removePayoutRecipient(string $recipientId): bool
     {
@@ -157,12 +143,12 @@ trait ManageRecipients
     /**
      * Request a Recipient webhook to be resent.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-recipients-request-a-webhook-to-be-resent
+     * @link https://developer.bitpay.com/reference/request-a-recipient-webhook-to-be-resent Request a Recipient Webhook to be Resent
      *
-     * @param  $recipientId string The id of the recipient for which you want the last webhook to be resent.
+     * @param  $recipientId string The ID of the recipient for which you want the last webhook to be resent.
      *
      * @return bool True if the webhook has been resent for the current recipient status, false otherwise.
-     * @throws PayoutRecipientNotificationException PayoutRecipientNotificationException class
+     * @throws BitPayException
      */
     public static function requestPayoutRecipientWebhook(string $recipientId): bool
     {

@@ -5,18 +5,19 @@ namespace Vrajroham\LaravelBitpay\Actions;
 use BitPaySDK\Exceptions\BitPayException;
 use BitPaySDK\Model\Bill\Bill;
 use BitPaySDK\Model\Bill\Item;
+use BitPaySDK\Model\Facade;
 
 
 /**
  * Bills are payment requests addressed to specific buyers.
  * Bill line items have fixed prices, typically denominated in fiat currency.
  *
- * @link https://bitpay.com/api/#rest-api-resources-bills-resource
+ * @link https://developer.bitpay.com/reference/bills Bills
  */
 trait ManageBills
 {
     /**
-     * Get BitPay Bill instance.
+     * Construct a BitPay Bill instance.
      *
      * @param string|null $number   A bill number for tracking purposes.
      * @param string|null $currency The three digit currency code used to compute the bill's crypto amount.
@@ -26,16 +27,16 @@ trait ManageBills
      * @return Bill
      */
     public static function Bill(
-        string $number = null,
-        string $currency = null,
-        string $email = null,
-        array  $items = null): Bill
+        ?string $number = null,
+        ?string $currency = null,
+        ?string $email = null,
+        ?array  $items = null): Bill
     {
         return new Bill($number, $currency, $email, $items);
     }
 
     /**
-     * Get BitPay Bill Item instance.
+     * Construct a BitPay Bill Item instance.
      *
      * @return Item  A BitPay Bill Item
      */
@@ -47,12 +48,12 @@ trait ManageBills
     /**
      * Create a BitPay Bill.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-bills-create-a-bill
+     * @link https://developer.bitpay.com/reference/create-a-bill Create a Bill
      *
      * @param $bill Bill A Bill object with request parameters defined.
      *
      * @return Bill A BitPay generated Bill object.
-     * @throws BitPayException BitPayException class
+     * @throws BitPayException
      */
     public static function createBill(Bill $bill): Bill
     {
@@ -60,29 +61,31 @@ trait ManageBills
     }
 
     /**
-     * Retrieve a BitPay bill by its id.
+     * Retrieve a BitPay bill by its ID.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-bills-retrieve-a-bill
+     * @link https://developer.bitpay.com/reference/retrieve-a-bill Retrieve a Bill
      *
-     * @param $billId      string The id of the bill to retrieve.
+     * @param $billId      string The ID of the bill to retrieve.
+     * @param $facade      string Facade to use when retrieving bill.
      *
      * @return Bill A BitPay Bill object.
-     * @throws BitPayException BitPayException class
+     * @throws BitPayException
      */
-    public static function getBill(string $billId): Bill
+    public static function getBill(string $billId, string $facade = Facade::MERCHANT): Bill
     {
-        return (new self())->client->getBill($billId);
+        $signRequest = $facade !== Facade::POS;
+        return (new self())->client->getBill($billId, $facade, $signRequest);
     }
 
     /**
      * Retrieve a collection of BitPay bills.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-bills-retrieve-bills-by-status
+     * @link Retrieve https://developer.bitpay.com/reference/retrieve-bills-by-status Bills by Status
      *
-     * @param $status string|null The status to filter the bills.
+     * @param $status string|null The status on which to filter the bills.
      *
      * @return Bill[] A list of BitPay Bill objects.
-     * @throws BitPayException BitPayException class
+     * @throws BitPayException
      */
     public static function getBills(string $status = null): array
     {
@@ -92,13 +95,13 @@ trait ManageBills
     /**
      * Update a BitPay Bill.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-bills-update-a-bill
+     * @link https://developer.bitpay.com/reference/update-a-bill Update a Bill
      *
      * @param $bill   Bill A Bill object with the parameters to update defined.
      * @param $billId string The ID of the Bill to update.
      *
      * @return Bill An updated Bill object.
-     * @throws BitPayException BitPayException class
+     * @throws BitPayException
      */
     public static function updateBill(Bill $bill, string $billId): Bill
     {
@@ -108,16 +111,17 @@ trait ManageBills
     /**
      * Deliver a BitPay Bill.
      *
-     * @link https://bitpay.com/api/#rest-api-resources-bills-deliver-a-bill-via-email
+     * @link https://developer.bitpay.com/reference/deliver-a-bill-via-email Deliver a Bill Via Email
      *
-     * @param $billId      string The id of the requested bill.
+     * @param $billId      string The ID of the requested bill.
      * @param $billToken   string The token of the requested bill.
+     * @param $signRequest bool Indicates if the delivery request should be un/signed.
      *
      * @return bool True if the bill has been delivered, false otherwise.
-     * @throws BitPayException BitPayException class
+     * @throws BitPayException
      */
-    public static function deliverBill(string $billId, string $billToken): bool
+    public static function deliverBill(string $billId, string $billToken, bool $signRequest = true): bool
     {
-        return strtolower((new self())->client->deliverBill($billId, $billToken)) === "success";
+        return (new self())->client->deliverBill($billId, $billToken, $signRequest);
     }
 }

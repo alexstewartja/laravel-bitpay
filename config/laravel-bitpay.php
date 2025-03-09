@@ -10,12 +10,11 @@ return [
     'private_key'             => env('BITPAY_PRIVATE_KEY_PATH') ?: storage_path($pkPath),
 
     /*
-     * Specifies using the Live Bitcoin network or
-     * Test Bitcoin network: livenet or testnet.
+     * Specifies using either the Live (mainnet) or Test (testnet) BitPay network.
      *
-     * The default is livenet
+     * The default is mainnet
      */
-    'network'                 => env('BITPAY_NETWORK', 'livenet'),
+    'network'                 => env('BITPAY_NETWORK', 'mainnet'),
 
     /*
      * The key_storage option allows you to specify a class for persisting and retrieving keys.
@@ -25,7 +24,7 @@ return [
     'key_storage'             => \BitPayKeyUtils\Storage\EncryptedFilesystemStorage::class,
 
     /*
-     * This is the password used to encrypt and decrypt keys on the filesystem.
+     * This is the password used to encrypt and decrypt private keys on the filesystem.
      */
     'key_storage_password'    => env('BITPAY_KEY_STORAGE_PASSWORD', 'RandomPasswordForEncryption'),
 
@@ -44,6 +43,13 @@ return [
     'payout_facade_enabled'   => env('BITPAY_ENABLE_PAYOUT', false),
 
     /*
+     * Generate/Enable use of BitPay token for 'pos' facade?
+     *
+     * Default: false
+     */
+    'pos_facade_enabled'   => env('BITPAY_ENABLE_POS', false),
+
+    /*
      * BitPay Merchant Token
      *
      * Default: null
@@ -58,10 +64,18 @@ return [
     'payout_token'            => env('BITPAY_PAYOUT_TOKEN'),
 
     /*
-     * Indicates if configured webhook (notificationURL) should automatically be set on:
+     * BitPay Payout Token
+     *
+     * Default: null
+     */
+    'pos_token'            => env('BITPAY_POS_TOKEN'),
+
+    /*
+     * Indicates if configured Webhook URL (notificationURL property) should automatically be set on:
      * - Invoices
+     * - Refunds
      * - Recipients
-     * - Payouts/PayoutBatches
+     * - Payouts/PayoutGroups
      *
      * This feature is overridden when a value is manually set on a respective resource
      * before submitting it to the BitPay API.
@@ -69,8 +83,9 @@ return [
      * Uncomment an entry to enable its auto-population.
      */
     'auto_populate_webhook'   => [
-//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::For_Invoices,
-//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::For_Recipients,
-//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::For_Payouts,
+//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::INVOICES,
+//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::REFUNDS,
+//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::RECIPIENTS,
+//        \Vrajroham\LaravelBitpay\Constants\WebhookAutoPopulate::PAYOUTS,
     ],
 ];

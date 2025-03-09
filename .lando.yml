@@ -1,0 +1,5 @@
+name: laravel-bitpay
+recipe: lamp
+config:
+  php: '8.4'
+  webroot: .
