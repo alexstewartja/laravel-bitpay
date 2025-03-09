@@ -26,8 +26,9 @@ trait CreateKeypairTrait
             throw InvalidConfigurationException::invalidOrEmptyPassword();
         }
 
-        if (!Storage::exists($config['private_key_dir'])) {
-            Storage::makeDirectory($config['private_key_dir']);
+        $pkPath = storage_path($config['private_key_dir']);
+        if (!Storage::exists($pkPath)) {
+            Storage::makeDirectory($pkPath);
         }
 
         $this->config = $config;

@@ -1,13 +1,11 @@
 <?php
 
-$pkDir = 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'bitpay';
-
 return [
     /*
      * This is the directory/folder path in which to store the private key.
      * The default value is `storage/app/private/bitpay`
      */
-    'private_key_dir'             => env('BITPAY_PRIVATE_KEY_DIR') ?: storage_path($pkDir),
+    'private_key_dir'             => env('BITPAY_PRIVATE_KEY_DIR') ?: ('private' . DIRECTORY_SEPARATOR . 'bitpay'),
 
     /*
      * This is name for the private key file.
