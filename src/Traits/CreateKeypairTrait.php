@@ -9,7 +9,7 @@ use Vrajroham\LaravelBitpay\Exceptions\InvalidConfigurationException;
 
 trait CreateKeypairTrait
 {
-    public function initialize()
+    public function init(): void
     {
         $config = config('laravel-bitpay');
 

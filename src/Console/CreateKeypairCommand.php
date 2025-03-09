@@ -60,7 +60,7 @@ class CreateKeypairCommand extends Command
     public function handle()
     {
         try {
-            $this->initialize();
+            $this->init();
             $this->network      = Str::lower($this->config['network']) === 'testnet' ? Env::TEST_URL : Env::PROD_URL;
             $this->bitpayClient = new Client(['base_uri' => $this->network]);
             $enabled_facades    = $this->getEnabledFacades();
