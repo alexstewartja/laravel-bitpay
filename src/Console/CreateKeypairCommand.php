@@ -2,11 +2,17 @@
 
 namespace Vrajroham\LaravelBitpay\Console;
 
+use BitPayKeyUtils\KeyHelper\KeyInterface;
 use BitPayKeyUtils\KeyHelper\PrivateKey;
+use BitPayKeyUtils\KeyHelper\PublicKey;
+use BitPayKeyUtils\Storage\StorageInterface;
 use BitPaySDK\Env;
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
 use Vrajroham\LaravelBitpay\Traits\CreateKeypairTrait;
 
@@ -28,21 +34,20 @@ class CreateKeypairCommand extends Command
      *
      * @var string
      */
-    protected      $description = 'Create and persist keypair(s). Pair client with BitPay server.';
-    private        $config;
-    private        $privateKey;
-    private        $publicKey;
-    private        $storageEngine;
-    private        $client;
-    private        $network;
-    private string $sin;
-    private array  $tokenLabels;
-    private array  $tokens;
-    private array  $pairingCodes;
-    private array  $pairingExpirations;
-    private array  $approveLinks;
-    private        $bar;
-    private Client $bitpayClient;
+    protected                $description = 'Create and persist keypair(s). Pair client with BitPay server.';
+    private array            $config;
+    private KeyInterface     $privateKey;
+    private PublicKey        $publicKey;
+    private StorageInterface $storageEngine;
+    private Client           $bitpayClient;
+    private string           $network;
+    private string           $sin;
+    private array            $tokenLabels;
+    private array            $tokens;
+    private array            $pairingCodes;
+    private array            $pairingExpirations;
+    private array            $approveLinks;
+    private ProgressBar      $bar;
 
     /**
      * Create a new command instance.
@@ -57,7 +62,7 @@ class CreateKeypairCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         try {
             $this->init();
@@ -82,7 +87,7 @@ class CreateKeypairCommand extends Command
 
             foreach ($enabled_facades as $facade) {
                 $this->sectionHeader(strtoupper($facade) . ' FACADE');
-                $this->pairWithServerAndCreateToken($facade);
+                $this->generateFacadeToken($facade);
                 $this->writeFacadeTokenToEnv($facade);
                 $this->newLine();
                 $this->line("<options=bold,underscore>Token Label</> : <options=bold;fg=bright-cyan>{$this->tokenLabels[$facade]}</>");
@@ -107,7 +112,7 @@ class CreateKeypairCommand extends Command
      * @return void
      * @since 5.0.1
      */
-    public function newLine($count = 1)
+    public function newLine($count = 1): void
     {
         $this->output->newLine($count);
     }
@@ -117,9 +122,9 @@ class CreateKeypairCommand extends Command
      * default.
      *
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function createAndPersistKeypair()
+    public function createAndPersistKeypair(): void
     {
         $this->sectionHeader('KEYPAIR GENERATION');
 
@@ -156,7 +161,7 @@ class CreateKeypairCommand extends Command
         $this->sectionFooter();
     }
 
-    private function sectionHeader(string $sectionTitle)
+    private function sectionHeader(string $sectionTitle): void
     {
         $diffWidth   = self::HEADER_FOOTER_WIDTH - (strlen($sectionTitle) + 2);
         $borderWidth = round($diffWidth / 2, 0, PHP_ROUND_HALF_DOWN);
@@ -167,9 +172,9 @@ class CreateKeypairCommand extends Command
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    private function generateFreshKeyPair()
+    private function generateFreshKeyPair(): void
     {
         $this->advanceWithInfo(' 🔑 - Generating private key.');
 
@@ -188,23 +193,25 @@ class CreateKeypairCommand extends Command
     }
 
     /**
-     * Advance progress bar by $steps, and write 'info' level $message to console, optionally skipping by $skipSteps.
+     * Advance progress bar by `$steps`, and write 'info' level `$message` to console, optionally skipping by `$skipSteps`.
      *
      * @param string $message
      * @param int    $steps
      * @param int    $skipSteps
      */
-    private function advanceWithInfo(string $message, int $steps = 1, int $skipSteps = 0)
+    private function advanceWithInfo(string $message, int $steps = 1, int $skipSteps = 0): void
     {
-        $this->bar->clear();
         if ($skipSteps > 0) {
             $this->bar->setMaxSteps($this->bar->getMaxSteps() - $skipSteps);
         }
+
+        $this->bar->clear();
         $this->bar->advance($steps);
+        $this->bar->display();
         $this->info($message);
     }
 
-    private function sectionFooter()
+    private function sectionFooter(): void
     {
         $this->newLine();
         $this->info('<fg=magenta>' . str_repeat('#', self::HEADER_FOOTER_WIDTH) . '</>');
@@ -214,16 +221,16 @@ class CreateKeypairCommand extends Command
     /**
      * Initiates client-server pairing. Create token and pairing code on BitPay server for provided facade.
      *
-     * @param string $facade One of 'merchant' or 'payout'
+     * @param string $facade One of the constants defined on `BitPaySDK\Model\Facade`
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
-    public function pairWithServerAndCreateToken(string $facade)
+    public function generateFacadeToken(string $facade): void
     {
         $this->advanceWithInfo(" 🖥️ - Connecting to BitPay server and generating $facade token.");
 
         // Token label is limited to 60 characters
-        $this->tokenLabels[$facade] = Str::substr(ucwords(str_replace(" ", "-", config('app.name'))), 0, 36)
+        $this->tokenLabels[$facade] = Str::substr(ucwords(Str::slug(config('app.name')), "-"), 0, 36)
             . '__' . Str::ucfirst($facade) . '__' . date('h-i-s_A');
 
         $postData = [
@@ -234,9 +241,9 @@ class CreateKeypairCommand extends Command
         $response = $this->bitpayClient->post('/tokens', [
             'json'    => $postData,
             'headers' => [
-                'Content-Type' => 'application/json',
+                'Content-Type'     => 'application/json',
                 'X-Accept-Version' => '2.0.0',
-                'Accept' => 'application/json',
+                'Accept'           => 'application/json',
             ],
         ]);
         sleep(3); // Guard against BitPay's rate limiting (`Too many requests` error)
