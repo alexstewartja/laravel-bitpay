@@ -91,6 +91,7 @@ class CreateKeypairCommand extends Command
                 $this->newLine();
                 $this->line("Approve your API Token by visiting: <fg=blue;href={$this->approveLinks[$facade]}>{$this->approveLinks[$facade]}</>");
                 $this->sectionFooter();
+                sleep(3);
             }
         } catch (\Throwable $exception) {
             $this->error('Whoops! We have a problem: ' . $exception->getMessage());
@@ -247,7 +248,6 @@ class CreateKeypairCommand extends Command
         $this->config["{$facade}_token"]   = $response->data[0]->token;
         $this->pairingCodes[$facade]       = $response->data[0]->pairingCode;
         $this->pairingExpirations[$facade] = date('M j, Y h:i:s A', intval($response->data[0]->pairingExpiration) / 1000);
-        $this->approveLinks[$facade]       = $this->network . '/api-access-request?' .
-            http_build_query(['pairingCode' => $this->pairingCodes[$facade]]);
+        $this->approveLinks[$facade]       = "{$this->network}api-access-request?pairingCode={$this->pairingCodes[$facade]}";
     }
 }
