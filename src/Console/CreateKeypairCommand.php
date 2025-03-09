@@ -85,7 +85,7 @@ class CreateKeypairCommand extends Command
                 $this->pairWithServerAndCreateToken($facade);
                 $this->writeNewEnvironmentFileWith($facade);
                 $this->newLine();
-                $this->line("<options=bold,underscore>Token Label</> : <options=bold;fg=bright-cyan>{$this->getTokenLabel()}</>");
+                $this->line("<options=bold,underscore>Token Label</> : <options=bold;fg=bright-cyan>{$this->tokenLabels[$facade]}</>");
                 $this->line("<options=bold,underscore>Token</>       : <options=bold;fg=bright-cyan>{$this->tokens[$facade]}</> (Copied to <options=bold;fg=gray>.env</> for your convenience)");
                 $this->line("<options=bold,underscore>Pairing Code</>: <options=bold;fg=bright-cyan>{$this->pairingCodes[$facade]}</> (Expires: <options=bold;fg=bright-red>{$this->pairingExpirations[$facade]}</>)");
                 $this->newLine();
