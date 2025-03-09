@@ -83,7 +83,7 @@ class CreateKeypairCommand extends Command
             foreach ($enabled_facades as $facade) {
                 $this->sectionHeader(strtoupper($facade) . ' FACADE');
                 $this->pairWithServerAndCreateToken($facade);
-                $this->writeNewEnvironmentFileWith($facade);
+                $this->writeFacadeTokenToEnv($facade);
                 $this->newLine();
                 $this->line("<options=bold,underscore>Token Label</> : <options=bold;fg=bright-cyan>{$this->tokenLabels[$facade]}</>");
                 $this->line("<options=bold,underscore>Token</>       : <options=bold;fg=bright-cyan>{$this->tokens[$facade]}</> (Copied to <options=bold;fg=gray>.env</> for your convenience)");

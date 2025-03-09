@@ -66,7 +66,7 @@ trait CreateKeypairTrait
      *
      * @throws \Exception
      */
-    protected function writeNewEnvironmentFileWith(string $facade)
+    protected function writeFacadeTokenToEnv(string $facade): void
     {
         $replString      = $this->getEnvReplacementString($facade) . '=' . $this->tokens[$facade];
         $envFilePath     = $this->laravel->environmentFilePath();
@@ -125,14 +125,9 @@ trait CreateKeypairTrait
     protected function keyReplacementPattern(string $facade): string
     {
         if (in_array($facade, $this->getAllFacades(), true)) {
-            $token = $this->config["{$facade}_token"];
-        } else {
-            throw new \Exception("'$facade' is not a valid BitPay facade!", 1);
+            return "/^" . $this->getEnvReplacementString($facade) . "=\w{44}/m";
         }
 
-        $replString = $this->getEnvReplacementString($facade);
-        $escaped    = preg_quote('=' . $token, '/');
-
-        return "/^" . $replString . "{$escaped}/m";
+        throw new \Exception("'$facade' is not a valid BitPay facade!", 1);
     }
 }
