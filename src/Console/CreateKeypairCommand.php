@@ -91,7 +91,6 @@ class CreateKeypairCommand extends Command
                 $this->newLine();
                 $this->line("Approve your API Token by visiting: <fg=blue;href={$this->approveLinks[$facade]}>{$this->approveLinks[$facade]}</>");
                 $this->sectionFooter();
-                sleep(3);
             }
         } catch (\Throwable $exception) {
             $this->error('Whoops! We have a problem: ' . $exception->getMessage());
@@ -240,6 +239,7 @@ class CreateKeypairCommand extends Command
                 'Accept' => 'application/json',
             ],
         ]);
+        sleep(3); // Guard against BitPay's rate limiting (`Too many requests` error)
         $response = json_decode($response->getBody()->getContents());
 
         $this->advanceWithInfo(" 🥳 - New $facade token and pairing code received from BitPay server.");
