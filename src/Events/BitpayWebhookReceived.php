@@ -14,7 +14,7 @@ class BitpayWebhookReceived
      *
      * @var array
      */
-    public $payload;
+    public array $payload;
 
     /**
      * Create a new event instance.

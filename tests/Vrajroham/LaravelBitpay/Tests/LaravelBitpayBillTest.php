@@ -12,12 +12,12 @@ class LaravelBitpayBillTest extends TestCase
     /** @test */
     public function isInstanceOfBill()
     {
-        $this->assertEquals(true, LaravelBitpay::Bill() instanceof Bill);
+        $this->assertTrue(LaravelBitpay::Bill() instanceof Bill);
     }
 
     /** @test */
     public function isInstanceOfBillItem()
     {
-        $this->assertEquals(true, LaravelBitpay::BillItem() instanceof BillItem);
+        $this->assertTrue(LaravelBitpay::BillItem() instanceof BillItem);
     }
 }

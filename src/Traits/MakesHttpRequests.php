@@ -7,6 +7,7 @@ use BitPaySDK\Env;
 use BitPaySDK\Exceptions\BitPayException;
 use BitPaySDK\Tokens;
 use Vrajroham\LaravelBitpay\Exceptions\InvalidConfigurationException;
+use Vrajroham\LaravelBitpay\LaravelBitpay;
 
 
 trait MakesHttpRequests
@@ -17,19 +18,21 @@ trait MakesHttpRequests
      * @throws InvalidConfigurationException
      * @throws BitPayException
      */
-    public function setupClient()
+    public function setupClient(): void
     {
         $this->validateAndLoadConfig();
 
         $this->client = BitpayClient::createWithData(
             'testnet' == $this->config['network'] ? Env::TEST : Env::PROD,
-            $this->config['private_key'],
+            LaravelBitpay::privateKeyAbsPath(),
             new Tokens(
                 $this->config['merchant_token'], //merchant
                 $this->config['payout_token'], //payout
                 $this->config['pos_token'] //pos
             ),
-            $this->config['key_storage_password'] //used to decrypt your private key, if encrypted
+            $this->config['key_storage_password'], //used to decrypt your private key, if encrypted
+            null,
+            'LaravelBitpay/7.0.0'
         );
     }
 
@@ -60,6 +63,10 @@ trait MakesHttpRequests
 
         if (! empty($config['payout_facade_enabled']) && empty($config['payout_token'])) {
             throw InvalidConfigurationException::emptyPayoutToken();
+        }
+
+        if (! empty($config['pos_facade_enabled']) && empty($config['pos_token'])) {
+            throw InvalidConfigurationException::emptyPosToken();
         }
 
         $this->config = $config;

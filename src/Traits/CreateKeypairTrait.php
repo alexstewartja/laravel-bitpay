@@ -6,6 +6,7 @@ use BitPaySDK\Model\Facade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Vrajroham\LaravelBitpay\Exceptions\InvalidConfigurationException;
+use Vrajroham\LaravelBitpay\LaravelBitpay;
 
 
 trait CreateKeypairTrait
@@ -34,8 +35,8 @@ trait CreateKeypairTrait
         $this->config = $config;
     }
 
-    protected function privateKeyAbsPath(): string {
-        return storage_path($this->config['private_key_dir'] . DIRECTORY_SEPARATOR . $this->config['private_key_name']);
+    protected function privateKeyPath(): string {
+        return LaravelBitpay::privateKeyAbsPath();
     }
 
     protected function getEnabledFacades(): array

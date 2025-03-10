@@ -14,6 +14,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
+use Vrajroham\LaravelBitpay\LaravelBitpayFacade;
 use Vrajroham\LaravelBitpay\Traits\CreateKeypairTrait;
 
 
@@ -139,7 +140,7 @@ class CreateKeypairCommand extends Command
         } else {
             try {
                 // Try to load the configured Private Key, expect it to be missing or corrupted
-                $this->privateKey = $this->storageEngine->load($this->privateKeyAbsPath());
+                $this->privateKey = $this->storageEngine->load($this->privateKeyPath());
 
                 // Private Key may be uncorrupted but has invalid hexits or decimals
                 if ($this->privateKey->isValid()) {
@@ -178,7 +179,7 @@ class CreateKeypairCommand extends Command
     {
         $this->advanceWithInfo(' 🔑 - Generating private key.');
 
-        $this->privateKey = new PrivateKey($this->privateKeyAbsPath());
+        $this->privateKey = new PrivateKey($this->privateKeyPath());
         $this->privateKey->generate();
 
         $this->advanceWithInfo(' 🌐 - Generating public key.');

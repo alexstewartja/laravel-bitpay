@@ -4,5 +4,6 @@ docs
 vendor
 coverage
 .idea
+.phpunit.cache
 .phpunit.result.cache
 .php_cs.cache

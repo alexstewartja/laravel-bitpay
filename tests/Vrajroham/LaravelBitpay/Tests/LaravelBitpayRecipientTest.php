@@ -11,6 +11,6 @@ class LaravelBitpayRecipientTest extends TestCase
     /** @test */
     public function isInstanceOfRecipient()
     {
-        $this->assertEquals(true, LaravelBitpay::PayoutRecipient() instanceof PayoutRecipient);
+        $this->assertTrue(LaravelBitpay::PayoutRecipient() instanceof PayoutRecipient);
     }
 }

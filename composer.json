@@ -15,13 +15,13 @@
       "name" : "Vaibhavraj Roham",
       "email" : "vaibhavraj@vrajroham.me",
       "homepage" : "https://vrajroham.me",
-      "role" : "Developer"
+      "role" : "Creator"
     },
     {
       "name" : "Alex Stewart",
-      "email" : "iamalexstewart@gmail.com",
+      "email" : "laravelbitpay@alexstewartja.com",
       "homepage" : "https://github.com/alexstewartja",
-      "role" : "Developer"
+      "role" : "Maintainer"
     }
   ],
   "repositories" : [
@@ -46,7 +46,7 @@
   },
   "autoload-dev" : {
     "psr-4" : {
-      "Vrajroham\\LaravelBitpay\\Tests\\" : "tests"
+      "Vrajroham\\LaravelBitpay\\Tests\\" : "tests\\Vrajroham\\LaravelBitpay\\Tests"
     }
   },
   "scripts" : {
@@ -62,7 +62,7 @@
         "Vrajroham\\LaravelBitpay\\LaravelBitpayServiceProvider"
       ],
       "aliases" : {
-        "LaravelBitpay" : "Vrajroham\\LaravelBitpay\\LaravelBitpayFacade"
+        "LaravelBitpay" : "Vrajroham\\LaravelBitpay\\LaravelBitpay"
       }
     }
   },

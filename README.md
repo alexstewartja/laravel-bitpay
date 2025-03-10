@@ -76,15 +76,15 @@ If upgrading from v4, please follow [MIGRATION.md](MIGRATION.md)
         + [Request a recipient webhook to be resent](#request-a-recipient-webhook-to-be-resent)
     + [Payouts](#payouts)
         + [Create a payout](#create-a-payout)
-        + [Create a payout batch](#create-a-payout-batch)
+        + [Create a payout group](#create-a-payout-group)
         + [Retrieve a payout](#retrieve-a-payout)
-        + [Retrieve a payout batch](#retrieve-a-payout-batch)
+        + [Retrieve a payout group](#retrieve-a-payout-group)
         + [Retrieve payouts based on status](#retrieve-payouts-based-on-status)
         + [Retrieve payout batches based on status](#retrieve-payout-batches-based-on-status)
         + [Cancel a payout](#cancel-a-payout)
-        + [Cancel a payout batch](#cancel-a-payout-batch)
+        + [Cancel a payout group](#cancel-a-payout-group)
         + [Request a payout webhook to be resent](#request-a-payout-webhook-to-be-resent)
-        + [Request a payout batch webhook to be resent](#request-a-payout-batch-webhook-to-be-resent)
+        + [Request a payout group webhook to be resent](#request-a-payout-group-webhook-to-be-resent)
     + [Currencies](#currencies)
         + [Retrieve the supported currencies](#retrieve-the-supported-currencies)
     + [Rates](#rates)
@@ -141,10 +141,10 @@ The `laravel-bitpay:createkeypair` command generates a BitPay API Token and Pair
 php artisan laravel-bitpay:createkeypair
 ```
 
-<center><img src="https://i.ibb.co/JvP3bQb/create-key-pair-command.png" title="Create Key-Pair Command" alt="Create Key-Pair Command"/></center>
+<center><img src="https://i.ibb.co/5WvjmStt/create-key-pair-command.png" title="Create Key-Pair Command" alt="Create Key-Pair Command"/></center>
 
 > :information_source: By default, the command will use the (valid) existing private key located
-> at `BITPAY_PRIVATE_KEY_PATH`.
+> at `BITPAY_PRIVATE_KEY_DIR`.
 > You may specify the `--fresh` or `-f` option to explicitly generate a fresh private key, from which tokens are
 > derived.
 
@@ -185,7 +185,7 @@ Specifically when:
 
 - [Creating an Invoice](#create-an-invoice)
 - [Inviting Recipients](#invite-recipients)
-- Creating a [Payout](#create-a-payout)/[Payout Batch](#create-a-payout-batch)
+- Creating a [Payout](#create-a-payout)/[Payout Group](#create-a-payout-group)
 
 You may enable this feature per-resource by uncommenting the respective entry within the `auto_populate_webhook` array
 found in the `laravel-bitpay.php` config file.
@@ -682,7 +682,7 @@ $ada = LaravelBitpay::PayoutRecipient('ada@cardano.org', 'Ada Lovelace');
 // Optional. Learn more at https://github.com/vrajroham/laravel-bitpay#1-setup-your-webhook-route
 $ada->setNotificationUrl('https://example.com/your-custom-webhook-url');
 
-// Batch all individual recipients
+// Group all individual recipients
 $recipients = LaravelBitpay::PayoutRecipients([$jane, $ada]);
 
 // Submit invites
@@ -778,22 +778,22 @@ $payoutToken = $payout->getToken();
 > :information_source: It is highly recommended you store the Payout ID and Token on your internal model(s). The token
 > can come in handy when verifying webhooks.
 
-#### Create a payout batch
+#### Create a payout group
 
 Let's pay our two top-tier affiliates for all their hard work, batching both payments into a single API call, for the
 efficiency of it.
 
 ```php
-// Initialize a Payout Batch
-$payoutBatchData = LaravelBitpay::PayoutBatch(Currency::USD); // Pay recipients in USD
-$payoutBatchData->setLedgerCurrency(Currency::ETH); // Record the payout batch on the ETH ledger
-$payoutBatchData->setAmount(500.00);
-$payoutBatchData->setReference('Aff_Jan-Feb_2022'); // Uniquely identifies an equivalent payout batch in your system
-$payoutBatchData->setLabel('Affiliate Payments for Jan-Feb 2022');
-$payoutBatchData->setEffectiveDate('2022-02-28');
+// Initialize a Payout Group
+$payoutGroupData = LaravelBitpay::PayoutGroup(Currency::USD); // Pay recipients in USD
+$payoutGroupData->setLedgerCurrency(Currency::ETH); // Record the payout group on the ETH ledger
+$payoutGroupData->setAmount(500.00);
+$payoutGroupData->setReference('Aff_Jan-Feb_2022'); // Uniquely identifies an equivalent payout group in your system
+$payoutGroupData->setLabel('Affiliate Payments for Jan-Feb 2022');
+$payoutGroupData->setEffectiveDate('2022-02-28');
 
 // Optional. Learn more at https://github.com/vrajroham/laravel-bitpay#1-setup-your-webhook-route
-$payoutBatchData->setNotificationURL('https://example.com/your-custom-webhook-url');
+$payoutGroupData->setNotificationURL('https://example.com/your-custom-webhook-url');
 
 // Define Instruction(s)
 $payJane = LaravelBitpay::PayoutInstruction(
@@ -810,19 +810,19 @@ $payAda = LaravelBitpay::PayoutInstruction(
 );
 $payAda->setLabel('Affiliate Payment #5678 for Jan-Feb 2022');
 
-// Attach Instruction(s) to Payout Batch
-$payoutBatchData->setInstructions([$payJane, $payAda]);
+// Attach Instruction(s) to Payout Group
+$payoutGroupData->setInstructions([$payJane, $payAda]);
 
-// Create Payout Batch on BitPay's server
-$payoutBatch = LaravelBitpay::createPayoutBatch($payoutBatchData);
+// Create Payout Group on BitPay's server
+$payoutGroup = LaravelBitpay::createPayoutGroup($payoutGroupData);
 
-$payoutBatchId = $payoutBatch->getId();
-$payoutBatchToken = $payoutBatch->getToken();
+$payoutGroupId = $payoutGroup->getId();
+$payoutGroupToken = $payoutGroup->getToken();
 
-// ... store Payout Batch ID and Token somewhere persistent
+// ... store Payout Group ID and Token somewhere persistent
 ```
 
-> :information_source: It is highly recommended you store the Payout Batch ID and Token on your internal model(s).
+> :information_source: It is highly recommended you store the Payout Group ID and Token on your internal model(s).
 > The token can come in handy when verifying webhooks.
 
 #### Retrieve a payout
@@ -831,10 +831,10 @@ $payoutBatchToken = $payoutBatch->getToken();
 $payout = LaravelBitpay::getPayout('payoutId_jws43dbnfpg');
 ```
 
-#### Retrieve a payout batch
+#### Retrieve a payout group
 
 ```php
-$payoutBatch = LaravelBitpay::getPayoutBatch('payoutBatchId_jws43dbnfpg');
+$payoutGroup = LaravelBitpay::getPayoutGroup('payoutGroupId_jws43dbnfpg');
 ```
 
 #### Retrieve payouts based on status
@@ -856,7 +856,7 @@ In this example, we retrieve all cancelled, Year-To-Date (YTD) payout batches.
 $startDate = date('Y-m-d', strtotime('first day of this year'));
 $endDate   = date('Y-m-d');
 
-$cancelledPayoutBatches = LaravelBitpay::getPayoutBatches($startDate, $endDate, PayoutStatus::Cancelled);
+$cancelledPayoutGroupes = LaravelBitpay::getPayoutGroupes($startDate, $endDate, PayoutStatus::Cancelled);
 ```
 
 #### Cancel a payout
@@ -865,10 +865,10 @@ $cancelledPayoutBatches = LaravelBitpay::getPayoutBatches($startDate, $endDate, 
 $payoutCancelled = LaravelBitpay::cancelPayout('payoutId_jws43dbnfpg');
 ```
 
-#### Cancel a payout batch
+#### Cancel a payout group
 
 ```php
-$payoutBatchCancelled = LaravelBitpay::cancelPayoutBatch('payoutBatchId_jws43dbnfpg');
+$payoutGroupCancelled = LaravelBitpay::cancelPayoutGroup('payoutGroupId_jws43dbnfpg');
 ```
 
 #### Request a payout webhook to be resent
@@ -876,13 +876,6 @@ $payoutBatchCancelled = LaravelBitpay::cancelPayoutBatch('payoutBatchId_jws43dbn
 ```php
 // True if the webhook has been resent for the current payout status, false otherwise.
 $webhookResent = LaravelBitpay::requestPayoutWebhook('payoutId_jws43dbnfpg');
-```
-
-#### Request a payout batch webhook to be resent
-
-```php
-// True if the webhook has been resent for the current payout batch status, false otherwise.
-$webhookResent = LaravelBitpay::requestPayoutBatchWebhook('payoutBatchId_jws43dbnfpg');
 ```
 
 ### Currencies
@@ -939,7 +932,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ## Security
 
-If you discover any security related issues, please email vaibhavraj@vrajroham.me or iamalexstewart@gmail.com instead of
+If you discover any security related issues, please email vaibhavraj@vrajroham.me or laravelbitpay@alexstewartja.com instead of
 using the issue tracker.
 
 ## Credits
